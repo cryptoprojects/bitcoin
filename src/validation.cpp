@@ -1,11 +1,13 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "validation.h"
 
 #include "arith_uint256.h"
+#include "auxpow.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "checkpoints.h"
@@ -50,7 +52,7 @@
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
-# error "Bitcoin cannot be compiled without assertions."
+# error "UltimateOnlineCash cannot be compiled without assertions."
 #endif
 
 #define MICRO 0.000001
@@ -96,7 +98,7 @@ static void CheckBlockIndex(const Consensus::Params& consensusParams);
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const std::string strMessageMagic = "Bitcoin Signed Message:\n";
+const std::string strMessageMagic = "UltimateOnlineCash Signed Message:\n";
 
 // Internal stuff
 namespace {
@@ -158,6 +160,7 @@ namespace {
 
     /** Dirty block index entries. */
     std::set<CBlockIndex*> setDirtyBlockIndex;
+	std::map<uint256, boost::shared_ptr<CAuxPow> > mapDirtyAuxPow;
 
     /** Dirty block file entries. */
     std::set<int> setDirtyFileInfo;
@@ -1014,7 +1017,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+    if(!CheckBlockProofOfWork(&block, consensusParams)) //if (!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
         return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
 
     return true;
@@ -1032,14 +1035,59 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
+    /*int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64)
         return 0;
-
-    CAmount nSubsidy = 50 * COIN;
+	*/
+    CAmount nSubsidy = 100 * COIN;
+	
+	if(nHeight == 1)
+	{
+		nSubsidy = 2000000000 * COIN;
+	}
+	else if(nHeight > 1 && nHeight <= 25)
+	{
+		nSubsidy = 2000 * COIN;
+	}
+	else if(nHeight > 25 && nHeight <= 100)
+	{
+		nSubsidy = 250000 * COIN;
+	}
+	else if(nHeight > 100 && nHeight <= 2500)
+	{
+		nSubsidy = 50000 * COIN;
+	}
+	else if(nHeight > 2500 && nHeight <= 10000)
+	{
+		nSubsidy = 30000 * COIN;
+	}
+	else if(nHeight > 10000 && nHeight <= 2500000)
+	{
+		nSubsidy = 1000 * COIN;
+	}
+	else if(nHeight > 2500000 && nHeight <= 5000000)
+	{
+		nSubsidy = 600 * COIN;
+	}
+	else if(nHeight > 5000000 && nHeight <= 7500000)
+	{
+		nSubsidy = 200 * COIN;
+	}
+	else if(nHeight > 7500000 && nHeight <= 10000000)
+	{
+		nSubsidy = 100 * COIN;
+	}
+	else if(nHeight > 10000000 && nHeight <= 67924040)
+	{
+		nSubsidy = 50 * COIN;
+	}
+	else
+	{
+		nSubsidy = 0 * COIN;
+	}
     // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halvings;
+    // nSubsidy >>= halvings;
     return nSubsidy;
 }
 
@@ -1538,7 +1586,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, 
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
 void ThreadScriptCheck() {
-    RenameThread("bitcoin-scriptch");
+    RenameThread("ultimateonlinecash-scriptch");
     scriptcheckqueue.Thread();
 }
 
@@ -1716,7 +1764,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     assert(pindex->pprev);
     CBlockIndex *pindexBIP34height = pindex->pprev->GetAncestor(chainparams.GetConsensus().BIP34Height);
     //Only continue to enforce if we're below BIP34 activation height or the block hash at that height doesn't correspond.
-    fEnforceBIP30 = fEnforceBIP30 && (!pindexBIP34height || !(pindexBIP34height->GetBlockHash() == chainparams.GetConsensus().BIP34Hash));
+    fEnforceBIP30 = fEnforceBIP30 && (!pindexBIP34height/* || !(pindexBIP34height->GetBlockHash() == chainparams.GetConsensus().BIP34Hash)*/); // BIP34 Height not hashed now, so it's not having a hash.
 
     if (fEnforceBIP30) {
         for (const auto& tx : block.vtx) {
@@ -1949,9 +1997,12 @@ bool static FlushStateToDisk(const CChainParams& chainparams, CValidationState &
                     vBlocks.push_back(*it);
                     setDirtyBlockIndex.erase(it++);
                 }
-                if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) {
+                if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks, mapDirtyAuxPow)) {
                     return AbortNode(state, "Failed to write to block index database");
                 }
+				for (std::vector<const CBlockIndex*>::const_iterator it = vBlocks.begin(); it != vBlocks.end(); it++) {
+					mapDirtyAuxPow.erase((*it)->GetBlockHash());
+				}
             }
             // Finally remove any pruned files
             if (fFlushForPrune)
@@ -2021,6 +2072,11 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams& chainParams) {
     {
         int nUpgraded = 0;
         const CBlockIndex* pindex = chainActive.Tip();
+		int chainID;
+		if (Params().NetworkIDString() == CBaseChainParams::TESTNET && pindex->nVersion >= 4)
+            chainID = AUXPOW_TESTNET_CHAIN_ID;
+        else
+            chainID = AUXPOW_CHAIN_ID;
         for (int bit = 0; bit < VERSIONBITS_NUM_BITS; bit++) {
             WarningBitsConditionChecker checker(bit);
             ThresholdState state = checker.GetStateFor(pindex, chainParams.GetConsensus(), warningcache[bit]);
@@ -2037,7 +2093,7 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams& chainParams) {
         for (int i = 0; i < 100 && pindex != nullptr; i++)
         {
             int32_t nExpectedVersion = ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus());
-            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0)
+            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0 && (pindex->nVersion & ~BLOCK_VERSION_AUXPOW) != (VERSIONBITS_TOP_BITS | (chainID * BLOCK_VERSION_CHAIN_START)))
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
@@ -2636,6 +2692,10 @@ static CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
         pindexBestHeader = pindexNew;
 
     setDirtyBlockIndex.insert(pindexNew);
+	
+	mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
+
+	mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 
     return pindexNew;
 }
@@ -2654,6 +2714,7 @@ static bool ReceivedBlockTransactions(const CBlock &block, CValidationState& sta
     }
     pindexNew->RaiseValidity(BLOCK_VALID_TRANSACTIONS);
     setDirtyBlockIndex.insert(pindexNew);
+	mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 
     if (pindexNew->pprev == nullptr || pindexNew->pprev->nChainTx) {
         // If pindexNew is the genesis block or all parents are BLOCK_VALID_TRANSACTIONS.
@@ -2687,6 +2748,35 @@ static bool ReceivedBlockTransactions(const CBlock &block, CValidationState& sta
     }
 
     return true;
+}
+
+static bool CBlockHeader::CheckProofOfWork(int nHeight) const
+{	
+	LogPrintf("CBlockHeader::CheckProofOfWork(), nHeight=%i \n",nHeight);
+	if (Params().NetworkIDString() == CBaseChainParams::TESTNET)
+	{
+		//work in testnet			
+		if (nHeight>=0)
+		{
+			if (!::CheckBlockProofOfWork(this, Params().GetConsensus())/*CheckProofOfWork(GetPoWHash(), nBits)*/)
+			{
+					LogPrintf("CBlockHeader::CheckProofOfWork(),GetPoWHash in testnet, nHeight=%i \n",nHeight);
+				return error("CBlockHeader::CheckProofOfWork() GetPoWHash in testnet: proof of work failed.");	
+			}
+		}
+	}
+	else
+	{	
+		if (nHeight>=0)
+		{
+			if (!::CheckBlockProofOfWork(this/*GetBlockHeader()*/, Params().GetConsensus())/*CheckProofOfWork(GetPoWHash(), nBits)*/)
+			{
+					LogPrintf("CBlockHeader::CheckProofOfWork(),GetPoWHash in mainnet, nHeight=%i \n",nHeight);
+				return error("CBlockHeader::CheckProofOfWork() GetPoWHash in mainnet: proof of work failed.");	
+			}
+		}
+	}
+	return true;
 }
 
 static bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64_t nTime, bool fKnown = false)
@@ -2780,7 +2870,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, 
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+    if (fCheckPOW && !CheckBlockProofOfWork(&block, consensusParams)/*!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams)*/)
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
 
     return true;
@@ -2918,6 +3008,10 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
 {
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
+	// Check if auxpow is allowed at this height if block has it
+	if (block.auxpow.get() != NULL && nHeight < GetAuxPowStartBlock())
+		return state.DoS(100, error("%s : premature auxpow block", __func__),
+						 REJECT_INVALID, "time-too-new");
 
     // Check proof of work
     const Consensus::Params& consensusParams = params.GetConsensus();
@@ -3899,6 +3993,10 @@ bool LoadBlockIndex(const CChainParams& chainparams)
 {
     // Load block index from databases
     bool needs_init = fReindex;
+	bool fAuxPow;
+	if (!fReindex && (!pblocktree->ReadFlag("auxpow", fAuxPow) || !fAuxPow)) {
+		return false;
+	}
     if (!fReindex) {
         bool ret = LoadBlockIndexDB(chainparams);
         if (!ret) return false;
@@ -3916,6 +4014,7 @@ bool LoadBlockIndex(const CChainParams& chainparams)
         // Use the provided setting for -txindex in the new database
         fTxIndex = gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX);
         pblocktree->WriteFlag("txindex", fTxIndex);
+		pblocktree->WriteFlag("auxpow", true);
     }
     return true;
 }

@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>org.bitcoin.bitcoind</string>
+	<string>io.ultimateonlinecash.ultimateonlinecashd</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/bin/bitcoind</string>
+		<string>/usr/local/bin/ultimateonlinecashd</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>

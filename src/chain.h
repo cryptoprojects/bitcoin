@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -276,7 +277,7 @@ public:
         return ret;
     }
 
-    CBlockHeader GetBlockHeader() const
+    /*CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
         block.nVersion       = nVersion;
@@ -287,11 +288,18 @@ public:
         block.nBits          = nBits;
         block.nNonce         = nNonce;
         return block;
-    }
+    }*/ // moved to chain.cpp
+	
+	CBlockHeader GetBlockHeader(const std::map<uint256, boost::shared_ptr<CAuxPow> >& mapDirtyAuxPow) const;
 
     uint256 GetBlockHash() const
     {
         return *phashBlock;
+    }
+	
+	uint256 GetBlockPoWHash() const
+    {
+        return GetBlockHeader().GetPoWHash();
     }
 
     int64_t GetBlockTime() const
@@ -365,19 +373,25 @@ int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& fr
 /** Find the forking point between two chain tips. */
 const CBlockIndex* LastCommonAncestor(const CBlockIndex* pa, const CBlockIndex* pb);
 
+class CAuxPow;
+template<typename Stream> void SerReadWrite(Stream& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionSerialize ser_action);
+template<typename Stream> void SerReadWrite(Stream& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionUnserialize ser_action);
 
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex
 {
 public:
     uint256 hashPrev;
+	// if this is an aux work block
+	boost::shared_ptr<CAuxPow> auxpow;
 
     CDiskBlockIndex() {
         hashPrev = uint256();
     }
 
-    explicit CDiskBlockIndex(const CBlockIndex* pindex) : CBlockIndex(*pindex) {
+    explicit CDiskBlockIndex(const CBlockIndex* pindex, const boost::shared_ptr<CAuxPow>& auxpow) : CBlockIndex(*pindex) {
         hashPrev = (pprev ? pprev->GetBlockHash() : uint256());
+		this->auxpow = auxpow;
     }
 
     ADD_SERIALIZE_METHODS;
@@ -405,6 +419,7 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+		READWRITE(auxpow);
     }
 
     uint256 GetBlockHash() const
@@ -420,15 +435,20 @@ public:
     }
 
 
-    std::string ToString() const
+   /* std::string ToString() const
     {
         std::string str = "CDiskBlockIndex(";
         str += CBlockIndex::ToString();
-        str += strprintf("\n                hashBlock=%s, hashPrev=%s)",
+        str += strprintf("\n                hashBlock=%s, hashPrev=%s, hashParentBlock=%s)",
             GetBlockHash().ToString(),
-            hashPrev.ToString());
+            hashPrev.ToString(),
+			(auxpow.get() != NULL) ? auxpow->GetParentBlockHash().ToString() : "-"));
         return str;
-    }
+    }*/
+	
+	// moved to chain.cpp
+	
+	std::string ToString() const;
 };
 
 /** An in-memory indexed chain of blocks. */

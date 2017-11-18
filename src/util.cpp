@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -87,8 +88,8 @@
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();
 
-const char * const BITCOIN_CONF_FILENAME = "bitcoin.conf";
-const char * const BITCOIN_PID_FILENAME = "bitcoind.pid";
+const char * const BITCOIN_CONF_FILENAME = "ultimateonlinecash.conf";
+const char * const BITCOIN_PID_FILENAME = "ultimateonlinecashd.pid";
 
 ArgsManager gArgs;
 bool fPrintToConsole = false;
@@ -503,7 +504,7 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(nullptr, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "bitcoin";
+    const char* pszModule = "ultimateonlinecash";
 #endif
     if (pex)
         return strprintf(
@@ -522,13 +523,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 
 fs::path GetDefaultDataDir()
 {
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Bitcoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Bitcoin
-    // Mac: ~/Library/Application Support/Bitcoin
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\UltimateOnlineCash
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\UltimateOnlineCash
+    // Mac: ~/Library/Application Support/UltimateOnlineCash
     // Unix: ~/.bitcoin
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Bitcoin";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "UltimateOnlineCash";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -538,10 +539,10 @@ fs::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    return pathRet / "Library/Application Support/Bitcoin";
+    return pathRet / "Library/Application Support/UltimateOnlineCash";
 #else
     // Unix
-    return pathRet / ".bitcoin";
+    return pathRet / ".ultimateonlinecash";
 #endif
 #endif
 }
@@ -886,11 +887,22 @@ std::string CopyrightHolders(const std::string& strPrefix)
 {
     std::string strCopyrightHolders = strPrefix + strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION));
 
-    // Check for untranslated substitution to make sure Bitcoin Core copyright is not removed by accident
+    // Check for untranslated substitution to make sure UltimateOnlineCash Core copyright is not removed by accident
     if (strprintf(COPYRIGHT_HOLDERS, COPYRIGHT_HOLDERS_SUBSTITUTION).find("Bitcoin Core") == std::string::npos) {
         strCopyrightHolders += "\n" + strPrefix + "The Bitcoin Core developers";
     }
     return strCopyrightHolders;
+}
+
+std::string CopyrightHoldersUOC(const std::string& strPrefix)
+{
+    std::string strCopyrightHoldersUOC = strPrefix + strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION));
+
+    // Check for untranslated substitution to make sure UltimateOnlineCash Core copyright is not removed by accident
+    if (strprintf(COPYRIGHT_HOLDERS, COPYRIGHT_HOLDERS_SUBSTITUTION).find("UltimateOnlineCash Core") == std::string::npos) {
+        strCopyrightHoldersUOC += "\n" + strPrefix + "The UltimateOnlineCash Core developers";
+    }
+    return strCopyrightHoldersUOC;
 }
 
 // Obtain the application startup time (used for uptime calculation)

@@ -1,15 +1,15 @@
 [Unit]
-Description=Bitcoin's distributed currency daemon
+Description=UltimateOnlineCash's distributed currency daemon
 After=network.target
 
 [Service]
-User=bitcoin
-Group=bitcoin
+User=ultimateonlinecash
+Group=ultimateonlinecash
 
 Type=forking
-PIDFile=/var/lib/bitcoind/bitcoind.pid
-ExecStart=/usr/bin/bitcoind -daemon -pid=/var/lib/bitcoind/bitcoind.pid \
--conf=/etc/bitcoin/bitcoin.conf -datadir=/var/lib/bitcoind -disablewallet
+PIDFile=/var/lib/ultimateonlinecashd/ultimateonlinecashd.pid
+ExecStart=/usr/bin/ultimateonlinecashd -daemon -pid=/var/lib/ultimateonlinecashd/ultimateonlinecashd.pid \
+-conf=/etc/ultimateonlinecash/ultimateonlinecash.conf -datadir=/var/lib/ultimateonlinecashd -disablewallet
 
 Restart=always
 PrivateTmp=true

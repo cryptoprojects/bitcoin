@@ -1,4 +1,5 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
+﻿// Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -40,9 +41,9 @@ QString BitcoinUnits::name(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("BTC");
-    case mBTC: return QString("mBTC");
-    case uBTC: return QString::fromUtf8("μBTC");
+    case BTC: return QString("UOC");
+    case mBTC: return QString("mUOC");
+    case uBTC: return QString::fromUtf8("μUOC");
     default: return QString("???");
     }
 }
@@ -51,9 +52,9 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("Bitcoins");
-    case mBTC: return QString("Milli-Bitcoins (1 / 1" THIN_SP_UTF8 "000)");
-    case uBTC: return QString("Micro-Bitcoins (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+    case BTC: return QString("UltimateOnlineCash");
+    case mBTC: return QString("Milli-UltimateOnlineCash (1 / 1" THIN_SP_UTF8 "000)");
+    case uBTC: return QString("Micro-UltimateOnlineCash (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
     default: return QString("???");
     }
 }

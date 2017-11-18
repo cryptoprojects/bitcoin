@@ -2,9 +2,10 @@
 # Copyright (c) 2010 ArtForz -- public domain half-a-node
 # Copyright (c) 2012 Jeff Garzik
 # Copyright (c) 2010-2016 The Bitcoin Core developers
+# Copyright (c) 2017 The UltimateOnlineCash Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Bitcoin P2P network half-a-node.
+"""UltimateOnlineCash P2P network half-a-node.
 
 This python code was modified from ArtForz' public domain  half-a-node, as
 found in the mini-node branch of http://github.com/jgarzik/pynode.
@@ -34,6 +35,7 @@ import sys
 import time
 from threading import RLock, Thread
 
+import neoscrypt
 from test_framework.siphash import siphash256
 from test_framework.util import hex_str_to_bytes, bytes_to_hex_str, wait_until
 
@@ -43,7 +45,7 @@ MY_SUBVERSION = b"/python-mininode-tester:0.0.3/"
 MY_RELAY = 1 # from version 70001 onwards, fRelay should be appended to version messages (BIP37)
 
 MAX_INV_SZ = 50000
-MAX_BLOCK_BASE_SIZE = 1000000
+MAX_BLOCK_BASE_SIZE = 16000000
 
 COIN = 100000000 # 1 btc in satoshis
 
@@ -539,6 +541,7 @@ class CBlockHeader():
             self.nNonce = header.nNonce
             self.sha256 = header.sha256
             self.hash = header.hash
+			self.neoscrypt256 = header.neoscrypt256
             self.calc_sha256()
 
     def set_null(self):
@@ -550,6 +553,7 @@ class CBlockHeader():
         self.nNonce = 0
         self.sha256 = None
         self.hash = None
+		self.neoscrypt256 = None
 
     def deserialize(self, f):
         self.nVersion = struct.unpack("<i", f.read(4))[0]
@@ -560,6 +564,7 @@ class CBlockHeader():
         self.nNonce = struct.unpack("<I", f.read(4))[0]
         self.sha256 = None
         self.hash = None
+		self.neoscrypt256 = None
 
     def serialize(self):
         r = b""
@@ -582,9 +587,11 @@ class CBlockHeader():
             r += struct.pack("<I", self.nNonce)
             self.sha256 = uint256_from_str(hash256(r))
             self.hash = encode(hash256(r)[::-1], 'hex_codec').decode('ascii')
+			self.neoscrypt256 = uint256_from_str(neoscrypt.getPoWHash(r))
 
     def rehash(self):
         self.sha256 = None
+		self.neoscrypt256 = None
         self.calc_sha256()
         return self.sha256
 
@@ -644,7 +651,7 @@ class CBlock(CBlockHeader):
     def is_valid(self):
         self.calc_sha256()
         target = uint256_from_compact(self.nBits)
-        if self.sha256 > target:
+        if self.neoscrypt256 > target:
             return False
         for tx in self.vtx:
             if not tx.is_valid():
@@ -656,7 +663,7 @@ class CBlock(CBlockHeader):
     def solve(self):
         self.rehash()
         target = uint256_from_compact(self.nBits)
-        while self.sha256 > target:
+        while self.neoscrypt256 > target:
             self.nNonce += 1
             self.rehash()
 
@@ -1676,7 +1683,7 @@ class NodeConn(asyncore.dispatcher):
             vt.addrFrom.port = 0
             self.send_message(vt, True)
 
-        logger.info('Connecting to Bitcoin Node: %s:%d' % (self.dstaddr, self.dstport))
+        logger.info('Connecting to UltimateOnlineCash Node: %s:%d' % (self.dstaddr, self.dstport))
 
         try:
             self.connect((dstaddr, dstport))

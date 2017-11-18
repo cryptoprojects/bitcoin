@@ -214,8 +214,8 @@
         <translation>&amp;Opsies</translation>
     </message>
     <message>
-        <source>Bitcoin</source>
-        <translation>Bitcoin</translation>
+        <source>UltimateOnlineCash</source>
+        <translation>UltimateOnlineCash</translation>
     </message>
     <message>
         <source>Wallet</source>

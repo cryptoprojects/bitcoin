@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2015-2016 The Bitcoin Core developers
+# Copyright (c) 2017 The UltimateOnlineCash Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test block processing.
@@ -661,7 +662,7 @@ class FullBlockTest(ComparisonTestFramework):
         tip(44)
         b47 = block(47, solve=False)
         target = uint256_from_compact(b47.nBits)
-        while b47.sha256 < target: #changed > to <
+        while b47.neoscrypt256 < target: #changed > to <
             b47.nNonce += 1
             b47.rehash()
         yield rejected(RejectResult(16, b'high-hash'))

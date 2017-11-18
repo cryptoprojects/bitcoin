@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,6 +10,26 @@
 #include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
+
+static const int AUXPOW_CHAIN_ID = 0x000b;
+static const int AUXPOW_TESTNET_CHAIN_ID = 0x000d;
+
+enum
+{
+    // primary version
+    BLOCK_VERSION_DEFAULT        = (1 << 0),
+
+    // modifiers
+    BLOCK_VERSION_AUXPOW         = (1 << 8),
+
+    // bits allocated for chain ID
+    BLOCK_VERSION_CHAIN_START    = (1 << 16),
+    BLOCK_VERSION_CHAIN_END      = (1 << 30),
+};
+
+class CAuxPow;
+template<typename Stream> void SerReadWrite(Stream& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionSerialize ser_action);
+template<typename Stream> void SerReadWrite(Stream& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionUnserialize ser_action);
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -27,6 +48,7 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+	boost::shared_ptr<CAuxPow> auxpow;
 
     CBlockHeader()
     {
@@ -43,10 +65,17 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+		READWRITE(auxpow);
     }
 
     void SetNull()
     {
+		int chainID;
+        bool fTestNet = GetBoolArg("-testnet", false);
+        if (fTestNet)
+            chainID = AUXPOW_TESTNET_CHAIN_ID;
+        else
+            chainID = AUXPOW_CHAIN_ID;
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
@@ -61,11 +90,21 @@ public:
     }
 
     uint256 GetHash() const;
+	
+	uint256 GetPoWHash() const;
 
     int64_t GetBlockTime() const
     {
         return (int64_t)nTime;
     }
+	
+	int GetChainID() const
+	{
+		return nVersion / BLOCK_VERSION_CHAIN_START;
+	}
+	
+	static bool CheckProofOfWork(int nHeight) const;
+	void SetAuxPow(CAuxPow* pow);
 };
 
 
@@ -113,6 +152,7 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+		block.auxpow 		 = auxpow;
         return block;
     }
 

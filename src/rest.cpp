@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -15,6 +16,7 @@
 #include "streams.h"
 #include "sync.h"
 #include "txmempool.h"
+#include "auxpow.h"
 #include "utilstrencodings.h"
 #include "version.h"
 
@@ -150,7 +152,7 @@ static bool rest_headers(HTTPRequest* req,
         BlockMap::const_iterator it = mapBlockIndex.find(hash);
         const CBlockIndex *pindex = (it != mapBlockIndex.end()) ? it->second : nullptr;
         while (pindex != nullptr && chainActive.Contains(pindex)) {
-            headers.push_back(pindex);
+            headers.push_back(pindex>GetBlockHeader(mapDirtyAuxPow));
             if (headers.size() == (unsigned long)count)
                 break;
             pindex = chainActive.Next(pindex);
