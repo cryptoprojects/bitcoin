@@ -269,7 +269,7 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/ripemd160.cpp \
   crypto/ripemd160.h \
   crypto/neoscrypt.c \
-  crypto/neoscrypt.S \
+  crypto/neoscrypt_asm.S \
   crypto/neoscrypt.h \
   crypto/sha1.cpp \
   crypto/sha1.h \

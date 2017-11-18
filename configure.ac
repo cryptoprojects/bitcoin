@@ -32,6 +32,7 @@ AC_CANONICAL_HOST
 AH_TOP([#ifndef BITCOIN_CONFIG_H])
 AH_TOP([#define BITCOIN_CONFIG_H])
 AH_BOTTOM([#endif //BITCOIN_CONFIG_H])
+AM_PROG_AS
 
 dnl faketime breaks configure and is only needed for make. Disable it here.
 unset FAKETIME
@@ -495,6 +496,8 @@ fi
 if test x$use_lcov_branch != xno; then
   AC_SUBST(LCOV_OPTS, "$LCOV_OPTS --rc lcov_branch_coverage=1")
 fi
+
+AC_DEFINE([ASM],[1],[Assembly code support])
 
 dnl Check for endianness
 AC_C_BIGENDIAN
