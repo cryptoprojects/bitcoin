@@ -28,7 +28,7 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+    inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(*(CMerkleTx*)this);
         READWRITE(vChainMerkleBranch);
         READWRITE(nChainIndex);
@@ -45,18 +45,18 @@ public:
     }
 };
 
-template<typename Stream> void SerReadWrite(Stream& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionSerialize ser_action)
+template<typename Stream> void SerReadWrite(Stream& s, boost::shared_ptr<CAuxPow>& pobj, CSerActionSerialize ser_action)
 {
     if (nVersion & BLOCK_VERSION_AUXPOW) {
-        ::Serialize(s, *pobj, nType, nVersion);
+        ::Serialize(s, *pobj);
     }
 }
 
-template<typename Stream> void SerReadWrite(Stream& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionUnserialize ser_action)
+template<typename Stream> void SerReadWrite(Stream& s, boost::shared_ptr<CAuxPow>& pobj, CSerActionUnserialize ser_action)
 {
     if (nVersion & BLOCK_VERSION_AUXPOW) {
         pobj.reset(new CAuxPow());
-        ::Unserialize(s, *pobj, nType, nVersion);
+        ::Unserialize(s, *pobj);
     } else
         pobj.reset();
 }
@@ -66,13 +66,13 @@ class CSizeComputer;
 class CDataStream;
 class CAutoFile;
 
-template void SerReadWrite<CSizeComputer>(CSizeComputer& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionSerialize ser_action);
-template void SerReadWrite<CDataStream>(CDataStream& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionSerialize ser_action);
-template void SerReadWrite<CAutoFile>(CAutoFile& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionSerialize ser_action);
+template void SerReadWrite<CSizeComputer>(CSizeComputer& s, boost::shared_ptr<CAuxPow>& pobj, CSerActionSerialize ser_action);
+template void SerReadWrite<CDataStream>(CDataStream& s, boost::shared_ptr<CAuxPow>& pobj, CSerActionSerialize ser_action);
+template void SerReadWrite<CAutoFile>(CAutoFile& s, boost::shared_ptr<CAuxPow>& pobj, CSerActionSerialize ser_action);
 
-//template void SerReadWrite<CSizeComputer>(CSizeComputer& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionUnserialize ser_action);
-template void SerReadWrite<CDataStream>(CDataStream& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionUnserialize ser_action);
-template void SerReadWrite<CAutoFile>(CAutoFile& s, boost::shared_ptr<CAuxPow>& pobj, int nType, int nVersion, CSerActionUnserialize ser_action);
+//template void SerReadWrite<CSizeComputer>(CSizeComputer& s, boost::shared_ptr<CAuxPow>& pobj, CSerActionUnserialize ser_action);
+template void SerReadWrite<CDataStream>(CDataStream& s, boost::shared_ptr<CAuxPow>& pobj, CSerActionUnserialize ser_action);
+template void SerReadWrite<CAutoFile>(CAutoFile& s, boost::shared_ptr<CAuxPow>& pobj, CSerActionUnserialize ser_action);
 
 extern void RemoveMergedMiningHeader(std::vector<unsigned char>& vchAux);
 
