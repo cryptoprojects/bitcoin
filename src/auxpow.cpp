@@ -4,7 +4,7 @@
 #include "auxpow.h"
 #include "init.h"
 #include "primitives/block.h"
-#include "chainparams.h"
+#include "consensus/params.h"
 #include "util.h"
 #include "base58.h"
 
@@ -12,11 +12,6 @@ using namespace std;
 using namespace boost;
 
 unsigned char pchMergedMiningHeader[] = { 0xfa, 0xbe, 'm', 'm' } ;
-
-int GetAuxPowStartBlock()
-{
-    return params.fPowAllowMinDifficultyBlocks ? AUXPOW_START_TESTNET : AUXPOW_START_MAINNET;
-}
 
 void RemoveMergedMiningHeader(vector<unsigned char>& vchAux)
 {
@@ -27,10 +22,12 @@ void RemoveMergedMiningHeader(vector<unsigned char>& vchAux)
 
 bool CAuxPow::Check(uint256 hashAuxBlock, int nChainID)
 {
+	const Consensus::Params& consensusParams = params.GetConsensus();
+
     if (nIndex != 0)
         return error("AuxPow is not a generate");
 
-    if (!params.fPowAllowMinDifficultyBlocks && parentBlockHeader.GetChainID() == nChainID)
+    if (!consensusParams.fPowAllowMinDifficultyBlocks && parentBlockHeader.GetChainID() == nChainID)
         return error("Aux POW parent has our chain ID");
 
     if (vChainMerkleBranch.size() > 30)
@@ -119,17 +116,4 @@ void CBlockHeader::SetAuxPow(CAuxPow* pow)
     else
         nVersion &= ~BLOCK_VERSION_AUXPOW;
     auxpow.reset(pow);
-}
-
-CKeyID GetAuxpowMiningKey()
-{
-	CKeyID result;
-	CBitcoinAddress auxminingaddr(GetArg("-auxminingaddr", ""));
-	if (!auxminingaddr.GetKeyID(result)) {
-		CReserveKey reservekey(pwalletMain);
-		CPubKey pubkey;
-		reservekey.GetReservedKey(pubkey);
-		result = pubkey.GetID();
-	}
-	return result;
 }

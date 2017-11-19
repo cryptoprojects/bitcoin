@@ -19,7 +19,7 @@
  * Maximum amount of time that a block timestamp is allowed to exceed the
  * current network-adjusted time before the block will be accepted.
  */
-static const int64_t MAX_FUTURE_BLOCK_TIME = 2 * 60 * 60;
+static const int64_t MAX_FUTURE_BLOCK_TIME = 2 * 30;
 
 /**
  * Timestamp window used as a grace period by code that compares external
@@ -290,7 +290,42 @@ public:
         return block;
     }*/ // moved to chain.cpp
 	
-	CBlockHeader GetBlockHeader(const std::map<uint256, boost::shared_ptr<CAuxPow> >& mapDirtyAuxPow) const;
+	
+	CBlockHeader GetBlockHeader(const std::map<uint256, boost::shared_ptr<CAuxPow> >& mapDirtyAuxPow) const
+    {
+        CBlockHeader block;
+
+		if (nVersion & BLOCK_VERSION_AUXPOW) {
+			bool foundInDirty = false;
+			{
+				LOCK(cs_main);
+				std::map<uint256, boost::shared_ptr<CAuxPow> >::const_iterator it = mapDirtyAuxPow.find(*phashBlock);
+				if (it != mapDirtyAuxPow.end()) {
+					block.auxpow = it->second;
+					foundInDirty = true;
+				}
+			}
+			if (!foundInDirty) {
+				CDiskBlockIndex diskblockindex;
+				// auxpow is not in memory, load CDiskBlockHeader
+				// from database to get it
+
+				pblocktree->ReadDiskBlockIndex(*phashBlock, diskblockindex);
+				block.auxpow = diskblockindex.auxpow;
+			}
+		}
+
+		block.nVersion       = nVersion;
+		if (pprev)
+			block.hashPrevBlock = pprev->GetBlockHash();
+		block.hashMerkleRoot = hashMerkleRoot;
+		block.nTime          = nTime;
+		block.nBits          = nBits;
+		block.nNonce         = nNonce;
+		return block;
+    }
+	
+	//CBlockHeader GetBlockHeader(const std::map<uint256, boost::shared_ptr<CAuxPow> >& mapDirtyAuxPow) const;
 
     uint256 GetBlockHash() const
     {

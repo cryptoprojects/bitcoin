@@ -226,17 +226,34 @@ void CCoinsViewDBCursor::Next()
     }
 }
 
-bool CBlockTreeDB::WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*> >& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo, const std::map<uint256, boost::shared_ptr<CAuxPow> >& auxpows) {
+bool CBlockTreeDB::WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*> >& info, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo, const std::map<uint256, boost::shared_ptr<CAuxPow> >& auxpows) {
     CDBBatch batch(*this);
-    for (std::vector<std::pair<int, const CBlockFileInfo*> >::const_iterator it=fileInfo.begin(); it != fileInfo.end(); it++) {
+    for (std::vector<std::pair<int, const CBlockFileInfo*> >::const_iterator it=info.begin(); it != info.end(); it++) {
         batch.Write(std::make_pair(DB_BLOCK_FILES, it->first), *it->second);
     }
     batch.Write(DB_LAST_BLOCK, nLastFile);
     for (std::vector<const CBlockIndex*>::const_iterator it=blockinfo.begin(); it != blockinfo.end(); it++) {
-		const std::map<uint256, boost::shared_ptr<CAuxPow> >::const_iterator auxIt = auxpows.find((*it)->GetBlockHash());
-		if (auxIt != auxpows.end()) {
-			batch.Write(std::make_pair(std::make_pair('b', (*it)->GetBlockHash()), 'a'), CDiskBlockIndex(*it, auxIt->second));
+	
+		// ultimateonlinecash: search for auxpow in memory, then try disk
+        boost::shared_ptr<CAuxPow> auxpow;
+		if ((*it)->nVersion & BLOCK_VERSION_AUXPOW)
+        {
+			const std::map<uint256, boost::shared_ptr<CAuxPow> >::const_iterator auxIt = auxpows.find((*it)->GetBlockHash());
+            if (auxIt != auxpows.end())
+                auxpow = auxIt->second;
+            else
+            {
+                CBlock block;
+                if (!ReadBlockFromDisk(block, *it))
+                    return error("%s : Failed to read block from disk", __func__);
+                auxpow = block.auxpow;
+            }
+		}		
+		else
+		{
+			auxpow = boost::shared_ptr<CAuxPow>();
 		}
+		batch.Write(std::make_pair(DB_BLOCK_INDEX, (*it)->GetBlockHash()), CDiskBlockIndex(*it, auxpow));
         batch.Write(std::make_pair(DB_BLOCK_INDEX, (*it)->GetBlockHash()), CDiskBlockIndex(*it));
     }
     return WriteBatch(batch, true);

@@ -7,9 +7,14 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
+#include <boost/shared_ptr.hpp>
+#include <boost/foreach.hpp>
+
 #include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
+#include "util.h"
+#include "versionbits.h"
 
 static const int AUXPOW_CHAIN_ID = 0x000b;
 static const int AUXPOW_TESTNET_CHAIN_ID = 0x000d;
@@ -58,25 +63,26 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(this->nVersion);
+        nVersion = this->nVersion;
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-		READWRITE(auxpow);
+        READWRITE(auxpow);
     }
 
     void SetNull()
     {
 		int chainID;
-        bool fTestNet = GetBoolArg("-testnet", false);
+        bool fTestNet = gArgs.GetBoolArg("-testnet", false);
         if (fTestNet)
             chainID = AUXPOW_TESTNET_CHAIN_ID;
         else
             chainID = AUXPOW_CHAIN_ID;
-        nVersion = 0;
+        nVersion = VERSIONBITS_TOP_BITS | (chainID * BLOCK_VERSION_CHAIN_START);
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
         nTime = 0;
@@ -103,7 +109,7 @@ public:
 		return nVersion / BLOCK_VERSION_CHAIN_START;
 	}
 	
-	static bool CheckProofOfWork(int nHeight) const;
+	bool CheckProofOfWork(int nHeight) const;
 	void SetAuxPow(CAuxPow* pow);
 };
 

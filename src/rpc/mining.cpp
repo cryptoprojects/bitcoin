@@ -5,7 +5,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "base58.h"
-#include "auxpow.h"
 #include "amount.h"
 #include "chain.h"
 #include "chainparams.h"
@@ -24,6 +23,7 @@
 #include "rpc/server.h"
 #include "txmempool.h"
 #include "util.h"
+#include "auxpow.h"
 #include "utilstrencodings.h"
 #include "validationinterface.h"
 #include "warnings.h"

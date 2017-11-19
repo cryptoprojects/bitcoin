@@ -1551,6 +1551,9 @@ static DisconnectResult DisconnectBlock(const CBlock& block, const CBlockIndex* 
             // At this point, all of txundo.vprevout should have been moved out.
         }
     }
+	
+	if (block.nVersion & BLOCK_VERSION_AUXPOW)
+        mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
@@ -1915,6 +1918,9 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     int64_t nTime6 = GetTimeMicros(); nTimeCallbacks += nTime6 - nTime5;
     LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO, nTimeCallbacks * MILLI / nBlocksTotal);
 
+	if (block.nVersion & BLOCK_VERSION_AUXPOW)
+        mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
+	
     return true;
 }
 
@@ -2693,9 +2699,8 @@ static CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
 
     setDirtyBlockIndex.insert(pindexNew);
 	
-	mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
-
-	mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
+	if (block.nVersion & BLOCK_VERSION_AUXPOW)
+        mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 
     return pindexNew;
 }
@@ -2714,7 +2719,8 @@ static bool ReceivedBlockTransactions(const CBlock &block, CValidationState& sta
     }
     pindexNew->RaiseValidity(BLOCK_VALID_TRANSACTIONS);
     setDirtyBlockIndex.insert(pindexNew);
-	mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
+	if (block.nVersion & BLOCK_VERSION_AUXPOW)
+        mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 
     if (pindexNew->pprev == nullptr || pindexNew->pprev->nChainTx) {
         // If pindexNew is the genesis block or all parents are BLOCK_VALID_TRANSACTIONS.
@@ -3008,10 +3014,6 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
 {
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
-	// Check if auxpow is allowed at this height if block has it
-	if (block.auxpow.get() != NULL && nHeight < GetAuxPowStartBlock())
-		return state.DoS(100, error("%s : premature auxpow block", __func__),
-						 REJECT_INVALID, "time-too-new");
 
     // Check proof of work
     const Consensus::Params& consensusParams = params.GetConsensus();
@@ -3044,6 +3046,11 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
             return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
                                  strprintf("rejected nVersion=0x%08x block", block.nVersion));
 
+								 
+	// Check if auxpow is allowed at this height if block has it
+	if (block.auxpow.get() != NULL && nHeight < consensusParams.nAuxPowStartingBlock)
+		return state.DoS(100, error("%s : premature auxpow block", __func__),
+						 REJECT_INVALID, "time-too-new");
     return true;
 }
 

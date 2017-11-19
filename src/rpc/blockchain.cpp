@@ -124,26 +124,26 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
 	if (block.nVersion & BLOCK_VERSION_AUXPOW) {
         // this block includes auxpow
-        UniValue auxpow;
+        UniValue auxpow(UniValue::VOBJ);
         auxpow.push_back(Pair("size", (int)::GetSerializeSize(*block.auxpow, SER_NETWORK, PROTOCOL_VERSION)));
 
-        UniValue coinbasetx;
+        UniValue coinbasetx(UniValue::VOBJ);
         TxToJSON(*block.auxpow, 0, coinbasetx);
         auxpow.push_back(Pair("coinbasetx", coinbasetx));
 
-        Array coinbaseMerkle;
+        UniValue coinbaseMerkle(UniValue::VARR);
         BOOST_FOREACH(const uint256 &hash, block.auxpow->vMerkleBranch)
             coinbaseMerkle.push_back(hash.GetHex());
         auxpow.push_back(Pair("coinbaseMerkleBranch", coinbaseMerkle));
         auxpow.push_back(Pair("coinbaseIndex", block.auxpow->nIndex));
 
-        Array chainMerkle;
+        UniValue chainMerkle(UniValue::VARR);
         BOOST_FOREACH(const uint256 &hash, block.auxpow->vChainMerkleBranch)
             chainMerkle.push_back(hash.GetHex());
         auxpow.push_back(Pair("chainMerkleBranch", chainMerkle));
         auxpow.push_back(Pair("chainIndex", (boost::uint64_t)block.auxpow->nChainIndex));
 
-        Object parent_block;
+        UniValue parent_block(UniValue::VOBJ);
         parent_block.push_back(Pair("hash", block.auxpow->parentBlockHeader.GetHash().GetHex()));
         parent_block.push_back(Pair("version", (boost::uint64_t)block.auxpow->parentBlockHeader.nVersion));
         parent_block.push_back(Pair("previousblockhash", block.auxpow->parentBlockHeader.hashPrevBlock.GetHex()));
