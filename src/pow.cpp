@@ -25,7 +25,7 @@ unsigned int GetNextWorkRequiredwithDigiShield(const CBlockIndex* pindexLast, co
     bool fTestNet = gArgs.GetBoolArg("-testnet", false);
 
 	//set default to pre-v2.0 values
-	int64_t retargetTimespan = params.DifficultyAdjustmentInterval();
+	int64_t retargetTimespan = params.nPowTargetTimespan;
 	//int64_t retargetSpacing = nTargetSpacing;
 	int64_t retargetInterval = params.nMinerConfirmationWindow;
 
@@ -41,7 +41,7 @@ unsigned int GetNextWorkRequiredwithDigiShield(const CBlockIndex* pindexLast, co
 			// Special difficulty rule for testnet:
 			// If the new block's timestamp is more than 2* 10 minutes
 			// then allow mining of a min-difficulty block.
-			if (pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nTargetSpacing*2)
+			if (pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing*2)
 				return npowWorkLimit;
 			else
 			{

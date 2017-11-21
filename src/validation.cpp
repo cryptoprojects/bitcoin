@@ -2735,7 +2735,7 @@ static bool ReceivedBlockTransactions(const CBlock &block, CValidationState& sta
     return true;
 }
 
-static bool CBlockHeader::CheckProofOfWork(int nHeight) const
+bool CBlockHeader::CheckProofOfWork(int nHeight) const
 {	
 	LogPrintf("CBlockHeader::CheckProofOfWork(), nHeight=%i \n",nHeight);
 	if (Params().NetworkIDString() == CBaseChainParams::TESTNET)

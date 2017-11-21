@@ -108,10 +108,10 @@ void RunTest(const TestVector &test) {
         assert(checkKey == key); //ensure a base58 decoded key also matches
 
         // Test public key
-        CUltimateOnlineCashExtPubKey b58pubkey; b58pubkey.SetKey(pubkey);
+        CBitcoinExtPubKey b58pubkey; b58pubkey.SetKey(pubkey);
         BOOST_CHECK(b58pubkey.ToString() == derive.pub);
 
-        CUltimateOnlineCashExtPubKey b58PubkeyDecodeCheck(derive.pub);
+        CBitcoinExtPubKey b58PubkeyDecodeCheck(derive.pub);
         CExtPubKey checkPubKey = b58PubkeyDecodeCheck.GetKey();
         assert(checkPubKey == pubkey); //ensure a base58 decoded pubkey also matches
 
