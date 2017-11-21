@@ -7,6 +7,7 @@
 
 #include "arith_uint256.h"
 #include "chain.h"
+#include "util.h"
 #include "primitives/block.h"
 #include "uint256.h"
 
@@ -20,11 +21,11 @@ unsigned int GetNextWorkRequiredwithDigiShield(const CBlockIndex* pindexLast, co
 	// DigiShield Retarget Code, found in DigiByte Source
 
     unsigned int npowWorkLimit = UintToArith256(params.powLimit).GetCompact();
-	int nHeight = pindexLast->nHeight + 1;
 	int blockstogoback = 0;
+    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
 
 	//set default to pre-v2.0 values
-	int64_t retargetTimespan = params.nTargetTimespan;
+	int64_t retargetTimespan = params.DifficultyAdjustmentInterval();
 	//int64_t retargetSpacing = nTargetSpacing;
 	int64_t retargetInterval = params.nMinerConfirmationWindow;
 
@@ -35,7 +36,7 @@ unsigned int GetNextWorkRequiredwithDigiShield(const CBlockIndex* pindexLast, co
 	// Only change once per interval
 	if ((pindexLast->nHeight+1) % retargetInterval != 0)
 	{
-		if (Params().NetworkIDString() == CBaseChainParams::TESTNET)
+		if (fTestNet)
 		{
 			// Special difficulty rule for testnet:
 			// If the new block's timestamp is more than 2* 10 minutes
