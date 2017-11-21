@@ -7,7 +7,6 @@
 #include "validation.h"
 
 #include "arith_uint256.h"
-#include "auxpow.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "checkpoints.h"
@@ -160,7 +159,6 @@ namespace {
 
     /** Dirty block index entries. */
     std::set<CBlockIndex*> setDirtyBlockIndex;
-	std::map<uint256, boost::shared_ptr<CAuxPow> > mapDirtyAuxPow;
 
     /** Dirty block file entries. */
     std::set<int> setDirtyFileInfo;
@@ -1017,7 +1015,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
     }
 
     // Check the header
-    if(!CheckBlockProofOfWork(&block, consensusParams)) //if (!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
+    if (!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
         return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
 
     return true;
@@ -1551,9 +1549,6 @@ static DisconnectResult DisconnectBlock(const CBlock& block, const CBlockIndex* 
             // At this point, all of txundo.vprevout should have been moved out.
         }
     }
-	
-	if (block.nVersion & BLOCK_VERSION_AUXPOW)
-        mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
@@ -1917,9 +1912,6 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
 
     int64_t nTime6 = GetTimeMicros(); nTimeCallbacks += nTime6 - nTime5;
     LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO, nTimeCallbacks * MILLI / nBlocksTotal);
-
-	if (block.nVersion & BLOCK_VERSION_AUXPOW)
-        mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 	
     return true;
 }
@@ -2003,12 +1995,9 @@ bool static FlushStateToDisk(const CChainParams& chainparams, CValidationState &
                     vBlocks.push_back(*it);
                     setDirtyBlockIndex.erase(it++);
                 }
-                if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks, mapDirtyAuxPow)) {
+                if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) {
                     return AbortNode(state, "Failed to write to block index database");
                 }
-				for (std::vector<const CBlockIndex*>::const_iterator it = vBlocks.begin(); it != vBlocks.end(); it++) {
-					mapDirtyAuxPow.erase((*it)->GetBlockHash());
-				}
             }
             // Finally remove any pruned files
             if (fFlushForPrune)
@@ -2078,11 +2067,6 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams& chainParams) {
     {
         int nUpgraded = 0;
         const CBlockIndex* pindex = chainActive.Tip();
-		int chainID;
-		if (Params().NetworkIDString() == CBaseChainParams::TESTNET && pindex->nVersion >= 4)
-            chainID = AUXPOW_TESTNET_CHAIN_ID;
-        else
-            chainID = AUXPOW_CHAIN_ID;
         for (int bit = 0; bit < VERSIONBITS_NUM_BITS; bit++) {
             WarningBitsConditionChecker checker(bit);
             ThresholdState state = checker.GetStateFor(pindex, chainParams.GetConsensus(), warningcache[bit]);
@@ -2099,7 +2083,7 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams& chainParams) {
         for (int i = 0; i < 100 && pindex != nullptr; i++)
         {
             int32_t nExpectedVersion = ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus());
-            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0 && (pindex->nVersion & ~BLOCK_VERSION_AUXPOW) != (VERSIONBITS_TOP_BITS | (chainID * BLOCK_VERSION_CHAIN_START)))
+            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0)
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
@@ -2698,9 +2682,6 @@ static CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
         pindexBestHeader = pindexNew;
 
     setDirtyBlockIndex.insert(pindexNew);
-	
-	if (block.nVersion & BLOCK_VERSION_AUXPOW)
-        mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 
     return pindexNew;
 }
@@ -2719,8 +2700,6 @@ static bool ReceivedBlockTransactions(const CBlock &block, CValidationState& sta
     }
     pindexNew->RaiseValidity(BLOCK_VALID_TRANSACTIONS);
     setDirtyBlockIndex.insert(pindexNew);
-	if (block.nVersion & BLOCK_VERSION_AUXPOW)
-        mapDirtyAuxPow.insert(std::make_pair(block.GetHash(), block.auxpow));
 
     if (pindexNew->pprev == nullptr || pindexNew->pprev->nChainTx) {
         // If pindexNew is the genesis block or all parents are BLOCK_VALID_TRANSACTIONS.
@@ -2764,7 +2743,7 @@ static bool CBlockHeader::CheckProofOfWork(int nHeight) const
 		//work in testnet			
 		if (nHeight>=0)
 		{
-			if (!::CheckBlockProofOfWork(this, Params().GetConsensus())/*CheckProofOfWork(GetPoWHash(), nBits)*/)
+			if (!::CheckProofOfWork(GetPoWHash(), nBits, Params().GetConsensus()))
 			{
 					LogPrintf("CBlockHeader::CheckProofOfWork(),GetPoWHash in testnet, nHeight=%i \n",nHeight);
 				return error("CBlockHeader::CheckProofOfWork() GetPoWHash in testnet: proof of work failed.");	
@@ -2775,7 +2754,7 @@ static bool CBlockHeader::CheckProofOfWork(int nHeight) const
 	{	
 		if (nHeight>=0)
 		{
-			if (!::CheckBlockProofOfWork(this/*GetBlockHeader()*/, Params().GetConsensus())/*CheckProofOfWork(GetPoWHash(), nBits)*/)
+			if (!::CheckProofOfWork(GetPoWHash(), nBits, Params().GetConsensus()))
 			{
 					LogPrintf("CBlockHeader::CheckProofOfWork(),GetPoWHash in mainnet, nHeight=%i \n",nHeight);
 				return error("CBlockHeader::CheckProofOfWork() GetPoWHash in mainnet: proof of work failed.");	
@@ -2876,7 +2855,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, 
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckBlockProofOfWork(&block, consensusParams)/*!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams)*/)
+    if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
 
     return true;
@@ -3046,11 +3025,6 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
             return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
                                  strprintf("rejected nVersion=0x%08x block", block.nVersion));
 
-								 
-	// Check if auxpow is allowed at this height if block has it
-	if (block.auxpow.get() != NULL && nHeight < consensusParams.nAuxPowStartingBlock)
-		return state.DoS(100, error("%s : premature auxpow block", __func__),
-						 REJECT_INVALID, "time-too-new");
     return true;
 }
 
@@ -4000,10 +3974,6 @@ bool LoadBlockIndex(const CChainParams& chainparams)
 {
     // Load block index from databases
     bool needs_init = fReindex;
-	bool fAuxPow;
-	if (!fReindex && (!pblocktree->ReadFlag("auxpow", fAuxPow) || !fAuxPow)) {
-		return false;
-	}
     if (!fReindex) {
         bool ret = LoadBlockIndexDB(chainparams);
         if (!ret) return false;
@@ -4021,7 +3991,6 @@ bool LoadBlockIndex(const CChainParams& chainparams)
         // Use the provided setting for -txindex in the new database
         fTxIndex = gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX);
         pblocktree->WriteFlag("txindex", fTxIndex);
-		pblocktree->WriteFlag("auxpow", true);
     }
     return true;
 }

@@ -1,12 +1,9 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "auxpow.h"
 #include "chain.h"
-#include "txdb.h"
 
 /**
  * CChain implementation
@@ -60,17 +57,6 @@ const CBlockIndex *CChain::FindFork(const CBlockIndex *pindex) const {
     while (pindex && !Contains(pindex))
         pindex = pindex->pprev;
     return pindex;
-}
-
-std::string CDiskBlockIndex::ToString() const
-{
-    std::string str = "CDiskBlockIndex(";
-    str += CBlockIndex::ToString();
-    str += strprintf("\n                hashBlock=%s, hashPrev=%s, hashParentBlock=%s)",
-        GetBlockHash().ToString(),
-        hashPrev.ToString(),
-        (auxpow.get() != NULL) ? auxpow->GetParentBlockHash().ToString() : "-");
-    return str;
 }
 
 CBlockIndex* CChain::FindEarliestAtLeast(int64_t nTime) const

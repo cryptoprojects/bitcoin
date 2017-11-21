@@ -16,7 +16,6 @@
 #include "streams.h"
 #include "sync.h"
 #include "txmempool.h"
-#include "auxpow.h"
 #include "utilstrencodings.h"
 #include "version.h"
 
@@ -152,7 +151,7 @@ static bool rest_headers(HTTPRequest* req,
         BlockMap::const_iterator it = mapBlockIndex.find(hash);
         const CBlockIndex *pindex = (it != mapBlockIndex.end()) ? it->second : nullptr;
         while (pindex != nullptr && chainActive.Contains(pindex)) {
-            headers.push_back(pindex>GetBlockHeader(mapDirtyAuxPow));
+            headers.push_back(pindex);
             if (headers.size() == (unsigned long)count)
                 break;
             pindex = chainActive.Next(pindex);

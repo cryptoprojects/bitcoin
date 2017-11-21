@@ -10,7 +10,6 @@
 #include "hash.h"
 #include "random.h"
 #include "pow.h"
-#include "auxpow.h"
 #include "uint256.h"
 #include "util.h"
 #include "ui_interface.h"
@@ -226,34 +225,13 @@ void CCoinsViewDBCursor::Next()
     }
 }
 
-bool CBlockTreeDB::WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*> >& info, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo, const std::map<uint256, boost::shared_ptr<CAuxPow> >& auxpows) {
+bool CBlockTreeDB::WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*> >& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo) {
     CDBBatch batch(*this);
-    for (std::vector<std::pair<int, const CBlockFileInfo*> >::const_iterator it=info.begin(); it != info.end(); it++) {
+    for (std::vector<std::pair<int, const CBlockFileInfo*> >::const_iterator it=fileInfo.begin(); it != fileInfo.end(); it++) {
         batch.Write(std::make_pair(DB_BLOCK_FILES, it->first), *it->second);
     }
     batch.Write(DB_LAST_BLOCK, nLastFile);
     for (std::vector<const CBlockIndex*>::const_iterator it=blockinfo.begin(); it != blockinfo.end(); it++) {
-	
-		// ultimateonlinecash: search for auxpow in memory, then try disk
-        boost::shared_ptr<CAuxPow> auxpow;
-		if ((*it)->nVersion & BLOCK_VERSION_AUXPOW)
-        {
-			const std::map<uint256, boost::shared_ptr<CAuxPow> >::const_iterator auxIt = auxpows.find((*it)->GetBlockHash());
-            if (auxIt != auxpows.end())
-                auxpow = auxIt->second;
-            else
-            {
-                CBlock block;
-                if (!ReadBlockFromDisk(block, *it))
-                    return error("%s : Failed to read block from disk", __func__);
-                auxpow = block.auxpow;
-            }
-		}		
-		else
-		{
-			auxpow = boost::shared_ptr<CAuxPow>();
-		}
-		batch.Write(std::make_pair(DB_BLOCK_INDEX, (*it)->GetBlockHash()), CDiskBlockIndex(*it, auxpow));
         batch.Write(std::make_pair(DB_BLOCK_INDEX, (*it)->GetBlockHash()), CDiskBlockIndex(*it));
     }
     return WriteBatch(batch, true);
@@ -310,13 +288,10 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
 
-				// UltimateOnlineCash disabled POW Check, it will be checked in another part.
-				
-                if (!CheckBlockProofOfWork(pindexNew, consensusParams)/*!CheckProofOfWork(pindexNew->GetBlockPoWHash(), pindexNew->nBits, consensusParams)*/)
-                    return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
-				
-				
-				// TX DB test Validation of Block Hashes
+                /*if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams))
+                    return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());*/
+					
+				// UltimateOnlineCash disabled the PoW Check at Starting Point, we will check it in another Part.
 
                 pcursor->Next();
             } else {

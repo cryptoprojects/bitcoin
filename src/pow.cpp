@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -8,48 +7,12 @@
 
 #include "arith_uint256.h"
 #include "chain.h"
-#include "auxpow.h"
 #include "primitives/block.h"
 #include "uint256.h"
 
-#include "util.h"
-
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
-    /*assert(pindexLast != nullptr);
-    unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
-
-    // Only change once per difficulty adjustment interval
-    if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
-    {
-        if (params.fPowAllowMinDifficultyBlocks)
-        {
-            // Special difficulty rule for testnet:
-            // If the new block's timestamp is more than 2* 10 minutes
-            // then allow mining of a min-difficulty block.
-            if (pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing*2)
-                return nProofOfWorkLimit;
-            else
-            {
-                // Return the last non-special-min-difficulty-rules-block
-                const CBlockIndex* pindex = pindexLast;
-                while (pindex->pprev && pindex->nHeight % params.DifficultyAdjustmentInterval() != 0 && pindex->nBits == nProofOfWorkLimit)
-                    pindex = pindex->pprev;
-                return pindex->nBits;
-            }
-        }
-        return pindexLast->nBits;
-    }
-
-    // Go back by what we want to be 14 days worth of blocks
-    int nHeightFirst = pindexLast->nHeight - (params.DifficultyAdjustmentInterval()-1);
-    assert(nHeightFirst >= 0);
-    const CBlockIndex* pindexFirst = pindexLast->GetAncestor(nHeightFirst);
-    assert(pindexFirst);
-
-    return CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);*/
-	
-	return GetNextWorkRequiredwithDigiShield(pindexLast, pblock, params);
+    return GetNextWorkRequiredwithDigiShield(pindexLast, pblock, params);
 }
 
 unsigned int GetNextWorkRequiredwithDigiShield(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
@@ -172,49 +135,5 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     if (UintToArith256(hash) > bnTarget)
         return false;
 
-    return true;
-}
-
-bool CheckBlockProofOfWork(const CBlockHeader *pblock, const Consensus::Params& params)
-{
-	// There's an issue with blocks prior to the auxpow fork reporting an invalid chain ID.
-	// As no version earlier than the 0.10 client a) has version 3 blocks and b) 
-	//	has auxpow, anything that isn't a version 3 block can be checked normally.
-	//	There's probably a more elegant way to implement this.
-
-    bool fTestNet = GetBoolArg("-testnet", false);
-    int chainID;
-    if (fTestNet && pblock->nVersion >= 4)
-        chainID = AUXPOW_TESTNET_CHAIN_ID;
-    else
-        chainID = AUXPOW_CHAIN_ID;
-
-	if (pblock->nVersion > 2) {
-       LogPrintf("nVersion : %d, ChainID : %d, %d\n",pblock->nVersion,pblock->GetChainID(),chainID);
-
-        if (!params.fPowAllowMinDifficultyBlocks && (pblock->nVersion & BLOCK_VERSION_AUXPOW && pblock->GetChainID() != chainID))
-	        return error("CheckBlockProofOfWork() : block does not have our chain ID");	
-
-	    if (pblock->auxpow.get() != NULL)
-	    {
-	        if (!pblock->auxpow->Check(pblock->GetHash(), pblock->GetChainID()))
-	            return error("CheckBlockProofOfWork() : AUX POW is not valid");
-	        // Check proof of work matches claimed amount
-	        if (!CheckProofOfWork(pblock->auxpow->GetParentBlockPoWHash(), pblock->nBits, params))
-	            return error("CheckBlockProofOfWork() : AUX proof of work failed");
-	    } 
-	    else
-	    {
-	        // Check proof of work matches claimed amount
-	        if (!CheckProofOfWork(pblock->GetPoWHash(), pblock->nBits, params))
-	            return error("CheckBlockProofOfWork() : proof of work failed");
-	    }
-	}
-    else
-    {
-        // Check proof of work matches claimed amount
-        if (!CheckProofOfWork(pblock->GetPoWHash(), pblock->nBits, params))
-            return error("CheckBlockProofOfWork() : proof of work failed");
-    }
     return true;
 }

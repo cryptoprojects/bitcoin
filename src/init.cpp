@@ -506,8 +506,6 @@ std::string HelpMessage(HelpMessageMode mode)
         strUsage += HelpMessageOpt("-rpcworkqueue=<n>", strprintf("Set the depth of the work queue to service RPC calls (default: %d)", DEFAULT_HTTP_WORKQUEUE));
         strUsage += HelpMessageOpt("-rpcservertimeout=<n>", strprintf("Timeout during HTTP requests (default: %d)", DEFAULT_HTTP_SERVER_TIMEOUT));
     }
-	
-	strUsage += "\n-auxminingaddr " + _("Address for getauxblock coinbase") + "\n";
 
     return strUsage;
 }
@@ -1432,11 +1430,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
                 // Note that it also sets fReindex based on the disk flag!
                 // From here on out fReindex and fReset mean something different!
                 if (!LoadBlockIndex(chainparams)) {
-					bool fAuxPow;
-					if (!pblocktree->ReadFlag("auxpow", fAuxPow) || !fAuxPow)
-						strLoadError = _("You need to rebuild the database using -reindex to enable auxpow support");
-					else
-						strLoadError = _("Error loading block database");
+                    strLoadError = _("Error loading block database");
                     break;
                 }
 
