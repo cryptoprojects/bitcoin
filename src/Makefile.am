@@ -255,6 +255,8 @@ libbitcoin_wallet_a_SOURCES = \
 # crypto primitives library
 crypto_libbitcoin_crypto_a_CPPFLAGS = $(AM_CPPFLAGS)
 crypto_libbitcoin_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+crypto_libbitcoin_crypto_a_CFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) -DSHA256 -DASM -DOPT -fPIC
+crypto_libbitcoin_crypto_a_CCASFLAGS = -DSHA256 -DASM -DOPT
 crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/aes.cpp \
   crypto/aes.h \
