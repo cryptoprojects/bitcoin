@@ -20,9 +20,9 @@ uint256 CBlockHeader::GetHash() const
 uint256 CBlockHeader::GetPoWHash() const
 {
     unsigned int profile = 0x0;
-    uint256 hash;
-    neoscrypt((unsigned char *) &nVersion, (unsigned char *) &hash, profile);				
-	return(hash);
+    uint256 thash;
+    neoscrypt((unsigned char *) &nVersion, (unsigned char *) &thash, profile);				
+    return thash;
 }
 
 std::string CBlock::ToString() const
