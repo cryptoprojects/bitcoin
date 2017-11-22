@@ -119,10 +119,10 @@ public:
         nDefaultPort = 4771;
         nPruneAfterHeight = 2500000;
 
-        genesis = CreateGenesisBlock(1509208773, 47188, 0x1e7fffff, 1, 100 * COIN);
+        genesis = CreateGenesisBlock(1509208773, 252269, 0x1e7fffff, 1, 100 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x6a087769e837aaf22f466b5f623766a006591e7f01e03f2830e52c109334e5f3"));
-        assert(genesis.hashMerkleRoot == uint256S("0xacc610ba804eb1abc7101f65659539e5b388efe4b00b2104d0d6aba0ca3cbb5e"));
+        assert(consensus.hashGenesisBlock == uint256S("0x51158d5a731ce8074091f5228a58ad427ca98846113d413cd4f86338dc69bd93"));
+        assert(genesis.hashMerkleRoot == uint256S("0xfbf900c60f30521007fe356ff1208d9ca716b36d9aeec7d07f1c4e4de5f3803b"));
 
         // Note that of those with the service bits flag, most only support a subset of possible options
         vSeeds.emplace_back("127.0.0.1", false); // Luke Dashjr // needs a seed node
@@ -143,7 +143,7 @@ public:
 
         checkpointData = (CCheckpointData) {
             {
-                { 1, uint256S("0x6a087769e837aaf22f466b5f623766a006591e7f01e03f2830e52c109334e5f3")},
+                { 1, uint256S("0x51158d5a731ce8074091f5228a58ad427ca98846113d413cd4f86338dc69bd93")},
             }
         };
 
@@ -203,10 +203,10 @@ public:
         nDefaultPort = 14771;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1509208773, 47188, 0x1e7fffff, 1, 100 * COIN);
+        genesis = CreateGenesisBlock(1509208773, 252269, 0x1e7fffff, 1, 100 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x6a087769e837aaf22f466b5f623766a006591e7f01e03f2830e52c109334e5f3"));
-        assert(genesis.hashMerkleRoot == uint256S("0xacc610ba804eb1abc7101f65659539e5b388efe4b00b2104d0d6aba0ca3cbb5e"));
+        assert(consensus.hashGenesisBlock == uint256S("0x51158d5a731ce8074091f5228a58ad427ca98846113d413cd4f86338dc69bd93"));
+        assert(genesis.hashMerkleRoot == uint256S("0xfbf900c60f30521007fe356ff1208d9ca716b36d9aeec7d07f1c4e4de5f3803b"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -230,7 +230,7 @@ public:
 
         checkpointData = (CCheckpointData) {
             {
-                {1, uint256S("0x6a087769e837aaf22f466b5f623766a006591e7f01e03f2830e52c109334e5f3")},
+                {1, uint256S("0x51158d5a731ce8074091f5228a58ad427ca98846113d413cd4f86338dc69bd93")},
             }
         };
 
