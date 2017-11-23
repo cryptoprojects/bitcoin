@@ -91,20 +91,20 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) 
     titleTextWidth  = fm.width(titleText);
     pixPaint.drawText(pixmap.width()/devicePixelRatio-titleTextWidth-paddingRight,paddingTop,titleText);
 
-    pixPaint.setFont(QFont(font, 15*fontFactor));
+    pixPaint.setFont(QFont(font, 20*fontFactor));
 
     // if the version string is to long, reduce size
     fm = pixPaint.fontMetrics();
     int versionTextWidth  = fm.width(versionText);
     if(versionTextWidth > titleTextWidth+paddingRight-10) {
-        pixPaint.setFont(QFont(font, 10*fontFactor));
+        pixPaint.setFont(QFont(font, 15*fontFactor));
         titleVersionVSpace -= 5;
     }
     pixPaint.drawText(pixmap.width()/devicePixelRatio-titleTextWidth-paddingRight+2,paddingTop+titleVersionVSpace,versionText);
 
     // draw copyright stuff
     {
-        pixPaint.setFont(QFont(font, 10*fontFactor));
+        pixPaint.setFont(QFont(font, 18*fontFactor));
         const int x = pixmap.width()/devicePixelRatio-titleTextWidth-paddingRight;
         const int y = paddingTop+titleCopyrightVSpace;
         QRect copyrightRect(x, y, pixmap.width() - x - paddingRight, pixmap.height() - y);
@@ -115,7 +115,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) 
 
     // draw additional text if special network
     if(!titleAddText.isEmpty()) {
-        QFont boldFont = QFont(font, 10*fontFactor);
+        QFont boldFont = QFont(font, 15*fontFactor);
         boldFont.setWeight(QFont::Bold);
         pixPaint.setFont(boldFont);
         fm = pixPaint.fontMetrics();

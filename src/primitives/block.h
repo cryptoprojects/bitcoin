@@ -68,8 +68,6 @@ public:
     {
         return (int64_t)nTime;
     }
-	
-	bool CheckProofOfWork(int nHeight) const;
 };
 
 

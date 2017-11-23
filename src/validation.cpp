@@ -2735,35 +2735,6 @@ static bool ReceivedBlockTransactions(const CBlock &block, CValidationState& sta
     return true;
 }
 
-bool CBlockHeader::CheckProofOfWork(int nHeight) const
-{	
-	LogPrintf("CBlockHeader::CheckProofOfWork(), nHeight=%i \n",nHeight);
-	if (Params().NetworkIDString() == CBaseChainParams::TESTNET)
-	{
-		//work in testnet			
-		if (nHeight>=0)
-		{
-			if (!::CheckProofOfWork(GetPoWHash(), nBits, Params().GetConsensus()))
-			{
-					LogPrintf("CBlockHeader::CheckProofOfWork(),GetPoWHash in testnet, nHeight=%i \n",nHeight);
-				return error("CBlockHeader::CheckProofOfWork() GetPoWHash in testnet: proof of work failed.");	
-			}
-		}
-	}
-	else
-	{	
-		if (nHeight>=0)
-		{
-			if (!::CheckProofOfWork(GetPoWHash(), nBits, Params().GetConsensus()))
-			{
-					LogPrintf("CBlockHeader::CheckProofOfWork(),GetPoWHash in mainnet, nHeight=%i \n",nHeight);
-				return error("CBlockHeader::CheckProofOfWork() GetPoWHash in mainnet: proof of work failed.");	
-			}
-		}
-	}
-	return true;
-}
-
 static bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64_t nTime, bool fKnown = false)
 {
     LOCK(cs_LastBlockFile);

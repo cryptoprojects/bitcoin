@@ -896,10 +896,10 @@ std::string CopyrightHolders(const std::string& strPrefix)
 
 std::string CopyrightHoldersUOC(const std::string& strPrefix)
 {
-    std::string strCopyrightHoldersUOC = strPrefix + strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION));
+    std::string strCopyrightHoldersUOC = strPrefix + strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION_UOC));
 
     // Check for untranslated substitution to make sure UltimateOnlineCash Core copyright is not removed by accident
-    if (strprintf(COPYRIGHT_HOLDERS, COPYRIGHT_HOLDERS_SUBSTITUTION).find("UltimateOnlineCash Core") == std::string::npos) {
+    if (strprintf(COPYRIGHT_HOLDERS, COPYRIGHT_HOLDERS_SUBSTITUTION_UOC).find("UltimateOnlineCash Core") == std::string::npos) {
         strCopyrightHoldersUOC += "\n" + strPrefix + "The UltimateOnlineCash Core developers";
     }
     return strCopyrightHoldersUOC;
