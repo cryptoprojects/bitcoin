@@ -126,6 +126,9 @@ BASE_SCRIPTS= [
     'minchainwork.py',
     'p2p-fingerprint.py',
     'uacomment.py',
+	
+	# auxpow tests
+    'auxpow_mining.py',
 ]
 
 EXTENDED_SCRIPTS = [

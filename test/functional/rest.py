@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the REST API."""
 
+from test_framework import auxpow
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from struct import *
@@ -194,7 +195,8 @@ class RESTTest (BitcoinTestFramework):
         response = http_post_call(url.hostname, url.port, '/rest/getutxos'+json_request+self.FORMAT_SEPARATOR+'json', '', True)
         assert_equal(response.status, 200) #must be a 200 because we are within the limits
 
-        self.nodes[0].generate(1) #generate block to not affect upcoming tests
+        #generate block to not affect upcoming tests
+		auxpow.mineAuxpowBlock(self.nodes[0]) #generate
         self.sync_all()
 
         ################

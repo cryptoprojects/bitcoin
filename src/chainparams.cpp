@@ -106,6 +106,9 @@ public:
 
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x51158d5a731ce8074091f5228a58ad427ca98846113d413cd4f86338dc69bd93");
+		
+		consensus.nAuxpowChainId= 0x000b;
+		consensus.fStrictChainId = true;
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -191,10 +194,13 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1519776000; // Feb 28th, 2018.
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000002830dab7f76dbb7d63"); //needs to be changed
+        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000020000");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x0000000002e9e7b00e1f6dc5123a04aad68dd0f0968d8c7aa45f6640795c37b1"); //1135275 //needs to be changed
+        consensus.defaultAssumeValid = uint256S("0x51158d5a731ce8074091f5228a58ad427ca98846113d413cd4f86338dc69bd93");
+		
+		consensus.nAuxpowChainId = 0x000c;
+		consensus.fStrictChainId = false;
 
         pchMessageStart[0] = 0x59;
         pchMessageStart[1] = 0x7c;
@@ -278,6 +284,9 @@ public:
 
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x00");
+		
+		consensus.nAuxpowChainId = 0x000d;
+		consensus.fStrictChainId = true;
 
         pchMessageStart[0] = 0x7a;
         pchMessageStart[1] = 0xac;

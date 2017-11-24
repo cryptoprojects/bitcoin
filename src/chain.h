@@ -12,6 +12,7 @@
 #include "pow.h"
 #include "tinyformat.h"
 #include "uint256.h"
+#include "chainparams.h"
 
 #include <vector>
 
@@ -277,18 +278,7 @@ public:
         return ret;
     }
 
-    CBlockHeader GetBlockHeader() const
-    {
-        CBlockHeader block;
-        block.nVersion       = nVersion;
-        if (pprev)
-            block.hashPrevBlock = pprev->GetBlockHash();
-        block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
-        return block;
-    }
+    CBlockHeader GetBlockHeader(const Consensus::Params& consensusParams) const;
 
     uint256 GetBlockHash() const
     {
@@ -297,7 +287,7 @@ public:
 	
 	uint256 GetBlockPoWHash() const
     {
-        return GetBlockHeader().GetPoWHash();
+        return GetBlockHeader(Params().GetConsensus()).GetPoWHash();
     }
 
     int64_t GetBlockTime() const
