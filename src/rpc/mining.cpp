@@ -1002,11 +1002,11 @@ void AuxMiningCheck()
   if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0
         && !Params().MineBlocksOnDemand())
     throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED,
-                       "Huntercoin is not connected!");
+                       "UltimateOnlineCash is not connected!");
 
   if (IsInitialBlockDownload() && !Params().MineBlocksOnDemand())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                       "Huntercoin is downloading blocks...");
+                       "UltimateOnlineCash is downloading blocks...");
 }
 
 } // anonymous namespace

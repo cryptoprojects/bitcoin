@@ -107,7 +107,7 @@ public:
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x51158d5a731ce8074091f5228a58ad427ca98846113d413cd4f86338dc69bd93");
 		
-		consensus.nAuxpowChainId= 0x000b;
+		consensus.nAuxpowChainId = 0x000b;
 		consensus.fStrictChainId = true;
 
         /**
