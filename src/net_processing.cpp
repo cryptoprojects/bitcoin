@@ -1419,7 +1419,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
         // If the peer is old enough to have the old alert system, send it the final alert.
         if (pfrom->nVersion <= 70012) {
-            CDataStream finalAlert(ParseHex("60010000000000000000000000ffffff7f00000000ffffff7ffeffff7f01ffffff7f00000000ffffff7f00ffffff7f002f555247454e543a20416c657274206b657920636f6d70726f6d697365642c2075706772616465207265717569726564004630440220653febd6410f470f6bae11cad19c48413becb1ac2c17f908fd0fd53bdc3abd5202206d0e9c96fe88d4a0f01ed9dedae2b6f9e00da94cad0fecaae66ecf689bf71b50"), SER_NETWORK, PROTOCOL_VERSION);
+            CDataStream finalAlert(ParseHex("5a010000009eef195a00000000eaf82d5a00000000d00700000100000000701101007c110100008813000015416c6572742053797374656d20726574697265642118555247454e543a205570677261646520726571756972656400483046022100fe871bb7a9ca08de1f4187271376e336ee8ab3eacc7ab5b9798ab06b9ecb6ed0022100d444cb9238c08b931afdc66ec9b6821bee3890b8bfdf23291dd87b12c55765b4"), SER_NETWORK, PROTOCOL_VERSION);
             connman->PushMessage(pfrom, CNetMsgMaker(nSendVersion).Make("alert", finalAlert));
         }
 
