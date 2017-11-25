@@ -351,9 +351,9 @@ mineBlock (CBlockHeader& block, bool ok, int nBits = -1)
     }
 
   if (ok)
-    BOOST_CHECK (CheckProofOfWork (block.GetHash (), nBits, ALGO_SHA256D, Params().GetConsensus()));
+    BOOST_CHECK (CheckProofOfWork (block.GetHash (), nBits, Params().GetConsensus()));
   else
-    BOOST_CHECK (!CheckProofOfWork (block.GetHash (), nBits, ALGO_SHA256D, Params().GetConsensus()));
+    BOOST_CHECK (!CheckProofOfWork (block.GetHash (), nBits, Params().GetConsensus()));
 }
 
 BOOST_AUTO_TEST_CASE (auxpow_pow)
