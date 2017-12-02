@@ -32,7 +32,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "neoscrypt.h"
+#include "crypto/neoscrypt.h"
 
 
 #ifdef SHA256
