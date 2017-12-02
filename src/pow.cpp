@@ -70,10 +70,8 @@ unsigned int GetNextWorkRequiredwithDigiShield(const CBlockIndex* pindexLast, co
 
 	// Limit adjustment step
 	int64_t nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
-	LogPrintf("nActualTimespan = %d  before bounds\n", nActualTimespan);
 
 	// thanks to RealSolid & WDC for this code
-	LogPrintf("GetNextWorkRequired nActualTimespan Limiting\n");
 	if (nActualTimespan < (retargetTimespan - (retargetTimespan/4)) ) nActualTimespan = (retargetTimespan - (retargetTimespan/4));
 	if (nActualTimespan > (retargetTimespan + (retargetTimespan/2)) ) nActualTimespan = (retargetTimespan + (retargetTimespan/2));
 
@@ -86,12 +84,6 @@ unsigned int GetNextWorkRequiredwithDigiShield(const CBlockIndex* pindexLast, co
 
 	if (bnNew > UintToArith256(params.powLimit))
 		bnNew = UintToArith256(params.powLimit);
-
-	// debug print
-	LogPrintf("GetNextWorkRequired RETARGET\n");
-	LogPrintf("nTargetTimespan = %d    nActualTimespan = %d\n", retargetTimespan, nActualTimespan);
-	LogPrintf("Before: %08x  %s\n", pindexLast->nBits, ArithToUint256(bnBefore).ToString());
-	LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), ArithToUint256(bnNew).ToString());
 
 	return bnNew.GetCompact();
 }
