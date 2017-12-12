@@ -1129,9 +1129,9 @@ UniValue addmultisigaddress(const JSONRPCRequest& request)
 
             "\nExamples:\n"
             "\nAdd a multisig address from 2 addresses\n"
-            + HelpExampleCli("addmultisigaddress", "2 \"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\",\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"") +
+            + HelpExampleCli("addmultisigaddress", "2 \"[\\\"828zjhY8Sn22iEE3kwEmz1hTrymJQrWKm8\\\",\\\"7sCmt3owXWHkGBTxa5u6omGDfjGn6pz5ZU\\\"]\"") +
             "\nAs json rpc call\n"
-            + HelpExampleRpc("addmultisigaddress", "2, \"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\",\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"")
+            + HelpExampleRpc("addmultisigaddress", "2, \"[\\\"828zjhY8Sn22iEE3kwEmz1hTrymJQrWKm8\\\",\\\"7sCmt3owXWHkGBTxa5u6omGDfjGn6pz5ZU\\\"]\"")
         ;
         throw std::runtime_error(msg);
     }
