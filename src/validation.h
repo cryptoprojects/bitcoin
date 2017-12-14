@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The UltimateOnlineCash Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -52,9 +53,9 @@ static const bool DEFAULT_WHITELISTFORCERELAY = true;
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
 static const unsigned int DEFAULT_MIN_RELAY_TX_FEE = 1000;
 //! -maxtxfee default
-static const CAmount DEFAULT_TRANSACTION_MAXFEE = 0.1 * COIN;
+static const CAmount DEFAULT_TRANSACTION_MAXFEE = 1 * COIN;
 //! Discourage users to set fees higher than this amount (in satoshis) per kB
-static const CAmount HIGH_TX_FEE_PER_KB = 0.01 * COIN;
+static const CAmount HIGH_TX_FEE_PER_KB = 0.1 * COIN;
 //! -maxtxfee will warn if called with a higher fee than this amount (in satoshis)
 static const CAmount HIGH_MAX_TX_FEE = 100 * HIGH_TX_FEE_PER_KB;
 /** Default for -limitancestorcount, max number of in-mempool ancestors */
@@ -117,10 +118,10 @@ static const unsigned int INVENTORY_BROADCAST_MAX = 7 * INVENTORY_BROADCAST_INTE
 static const unsigned int AVG_FEEFILTER_BROADCAST_INTERVAL = 10 * 60;
 /** Maximum feefilter broadcast delay after significant change. */
 static const unsigned int MAX_FEEFILTER_CHANGE_DELAY = 5 * 60;
-/** Block download timeout base, expressed in millionths of the block interval (i.e. 10 min) */
-static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE = 1000000;
-/** Additional block download timeout per parallel downloading peer (i.e. 5 min) */
-static const int64_t BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 500000;
+/** Block download timeout base, expressed in millionths of the block interval (i.e. 30 seconds) */
+static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE = 300000;
+/** Additional block download timeout per parallel downloading peer (i.e. 15 seconds) */
+static const int64_t BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 150000;
 
 static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 /** Maximum age of our tip in seconds for us to be considered current for fee estimation */
@@ -215,7 +216,8 @@ static const unsigned int DEFAULT_CHECKLEVEL = 3;
 // full block file chunks, we need the high water mark which triggers the prune to be
 // one 128MB block file + added 15% undo data = 147MB greater for a total of 545MB
 // Setting the target to > than 550MB will make it likely we can respect the target.
-static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
+// Calculate this result with 16 because UltimateOnlineCash has 16 MB Block size.
+static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 16 * 550 * 1024 * 1024;
 
 /** 
  * Process an incoming block. This only returns after the best known valid
