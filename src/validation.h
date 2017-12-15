@@ -217,7 +217,7 @@ static const unsigned int DEFAULT_CHECKLEVEL = 3;
 // one 128MB block file + added 15% undo data = 147MB greater for a total of 545MB
 // Setting the target to > than 550MB will make it likely we can respect the target.
 // Calculate this result with 16 because UltimateOnlineCash has 16 MB Block size.
-static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 16 * 550 * 1024 * 1024;
+static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 16 * 550 * 1024 * 1024UL;
 
 /** 
  * Process an incoming block. This only returns after the best known valid
